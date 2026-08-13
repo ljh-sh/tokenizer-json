@@ -1,5 +1,9 @@
 id	model_type	vocab_size	added_tokens	pre_tokenizer	size_raw	size_xz
+claude	BPE	64739	5	Sequence	1766567	563864
 deepseek_v3	BPE	128000	818	Sequence	7847652	1321664
+gpt_3_5_turbo	BPE	100261	5	Sequence	2730645	895108
+gpt_4	BPE	100261	5	Sequence	2730645	895108
+gpt_4o	BPE	200000	2	Sequence	6730262	1969652
 llama3	BPE	128000	256	Sequence	9085698	1601956
 mistral_v3	BPE	32768	771	Metaspace	1961548	334260
 qwen2_5	BPE	151643	22	Sequence	7031645	1379364

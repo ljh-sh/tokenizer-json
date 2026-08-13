@@ -6,14 +6,24 @@ The actual data lives in the [`data` release](https://github.com/ljh-sh/tokenize
 
 ## Tokenizers
 
-| id | model_type | vocab_size | added_tokens | pre_tokenizer | raw | xz |
+| id | family | model_type | vocab_size | added_tokens | raw | xz |
 |---|---|---|---|---|---|---|
-| `deepseek_v3` | BPE | 128000 | 818 | Sequence | 7.5 MB | 1.3 MB |
-| `llama3` | BPE | 128000 | 256 | Sequence | 8.7 MB | 1.5 MB |
-| `mistral_v3` | BPE | 32768 | 771 | Metaspace | 1.9 MB | 326 KB |
-| `qwen2_5` | BPE | 151643 | 22 | Sequence | 6.7 MB | 1.3 MB |
+| `qwen2_5` | Qwen | BPE | 151643 | 22 | 6.7 MB | 1.3 MB |
+| `deepseek_v3` | DeepSeek | BPE | 128000 | 818 | 7.5 MB | 1.3 MB |
+| `llama3` | Meta Llama 3 | BPE | 128000 | 256 | 8.7 MB | 1.5 MB |
+| `mistral_v3` | Mistral | BPE | 32768 | 771 | 1.9 MB | 326 KB |
+| `gpt_4o` | OpenAI GPT-4o / o1 / o3 | BPE | 200000 | 2 | 6.4 MB | 1.9 MB |
+| `gpt_4` | OpenAI GPT-4 | BPE | 100261 | 5 | 2.7 MB | 874 KB |
+| `gpt_3_5_turbo` | OpenAI GPT-3.5 | BPE | 100261 | 5 | 2.7 MB | 874 KB |
+| `claude` | Anthropic Claude (legacy 2023) | BPE | 64739 | 5 | 1.8 MB | 551 KB |
 
 See [`index.tsv`](index.tsv) for the machine-readable list.
+
+### Notes
+
+- **OpenAI**: converted from `tiktoken` encodings (`o200k_base`, `cl100k_base`) to HuggingFace `tokenizer.json` format. GPT-4 and GPT-3.5 share the same `cl100k_base` vocabulary but have different default context lengths.
+- **Anthropic**: converted from the legacy `@anthropic-ai/tokenizer` (2023) `claude.json`. This is the only publicly available Anthropic tokenizer artifact; newer Claude 3/3.5/4 tokenizers have not been officially released.
+- **Grok**: xAI has not officially released a `tokenizer.json`. Grok-1 ships a `tokenizer.model` (SentencePiece); Grok-2/3 tokenizers are not public. We will add Grok once a reliable source or conversion is available.
 
 ## Download
 
@@ -33,13 +43,16 @@ ta count --tokenizer qwen2_5.tokenizer.json
 ## Use in browser
 
 ```javascript
+// xz is not natively decompressable in browsers; use a WASM xz decoder or
+// decompress server-side. The asset is xz because it is smaller than gzip.
 const res = await fetch(
   'https://github.com/ljh-sh/tokenizer-json/releases/download/data/qwen2_5.tokenizer.json.xz'
 );
-// Browser does not natively decompress xz; serve decompressed or use a WASM xz decoder.
 ```
 
 ## Add a tokenizer
+
+### Open-source HuggingFace model
 
 ```bash
 ./scripts/sync.sh <id> <huggingface-repo>
@@ -48,9 +61,19 @@ const res = await fetch(
 ./scripts/sync.sh qwen2_5 Qwen/Qwen2.5-7B-Instruct
 ```
 
-Requirements:
-- `curl`, `xz`, `python3`
-- `gh` CLI authenticated to upload release assets
+### OpenAI tiktoken encoding
+
+```bash
+python3 scripts/convert-tiktoken.py gpt-4o -o data/gpt_4o.tokenizer.json
+```
+
+### Anthropic legacy tokenizer
+
+Requires `tiktoken` and `node` with `tiktoken` + `@anthropic-ai/tokenizer` installed:
+
+```bash
+python3 scripts/convert-anthropic.py /path/to/claude.json -o data/claude.tokenizer.json
+```
 
 ## Data plan
 
