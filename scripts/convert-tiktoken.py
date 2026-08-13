@@ -80,6 +80,8 @@ ENCODING_MAP = {
     "gpt-4": {"encoding": "cl100k_base", "model_max_length": 8192},
     "gpt-4o": {"encoding": "o200k_base", "model_max_length": 128000},
     "gpt-4o-mini": {"encoding": "o200k_base", "model_max_length": 128000},
+    "o200k_harmony": {"encoding": "o200k_harmony", "model_max_length": 256000},
+    "gpt-5": {"encoding": "o200k_base", "model_max_length": 256000},
 }
 
 
