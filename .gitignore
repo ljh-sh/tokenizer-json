@@ -1,0 +1,12 @@
+# Release assets (xz-compressed tokenizer data) are uploaded to GitHub Releases,
+# not tracked in git.
+data/*.tokenizer.json
+data/*.tokenizer.json.xz
+
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*.swo
+*~

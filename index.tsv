@@ -1,0 +1,5 @@
+id	model_type	vocab_size	added_tokens	pre_tokenizer	size_raw	size_xz
+deepseek_v3	BPE	128000	818	Sequence	7847652	1321664
+llama3	BPE	128000	256	Sequence	9085698	1601956
+mistral_v3	BPE	32768	771	Metaspace	1961548	334260
+qwen2_5	BPE	151643	22	Sequence	7031645	1379364
