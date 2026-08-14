@@ -8,10 +8,12 @@ MIRROR="${HF_MIRROR:-https://hf-mirror.com}"
 RELEASE_TAG="${RELEASE_TAG:-data}"
 
 usage() {
-  echo "Usage: $0 <id> <huggingface-repo-or-url>"
+  echo "Usage: $0 [--modelscope] <id> <huggingface-repo-or-url>"
   echo ""
   echo "Examples:"
   echo "  $0 qwen2_5 Qwen/Qwen2.5-7B-Instruct"
+  echo "  $0 --modelscope qwen3 Qwen/Qwen3-0.6B"
+  echo "  $0 --modelscope glm ZhipuAI/glm-4-9b-chat-hf"
   echo "  $0 llama3 NousResearch/Meta-Llama-3-8B"
   echo ""
   echo "Environment:"
@@ -27,6 +29,25 @@ usage() {
   exit 1
 }
 
+USE_MODELSCOPE=false
+
+# Parse optional flags.
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --modelscope)
+      USE_MODELSCOPE=true
+      shift
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      usage
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
 if [ $# -lt 2 ]; then
   usage
 fi
@@ -37,9 +58,13 @@ JSON_OUT="$DATA_DIR/${ID}.tokenizer.json"
 XZ_OUT="$DATA_DIR/${ID}.tokenizer.json.xz"
 SRC_FILE="$DATA_DIR/${ID}.tokenizer.json.src"
 
-# Normalize source to a full HF raw URL if it looks like "org/repo".
+# Normalize source to a full URL if it looks like "org/repo".
 if [[ "$SRC" != http* ]]; then
-  SRC="$MIRROR/$SRC/raw/main/tokenizer.json"
+  if [ "$USE_MODELSCOPE" = true ]; then
+    SRC="https://modelscope.cn/api/v1/models/$SRC/repo?FilePath=tokenizer.json&Revision=master"
+  else
+    SRC="$MIRROR/$SRC/raw/main/tokenizer.json"
+  fi
 fi
 
 mkdir -p "$DATA_DIR"

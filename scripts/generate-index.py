@@ -17,7 +17,7 @@ def analyze(path: Path) -> dict:
     data = json.loads(raw)
 
     model = data.get("model", {})
-    model_type = model.get("type", "unknown")
+    algorithm = model.get("type", "unknown")
 
     vocab = model.get("vocab", [])
     if isinstance(vocab, dict):
@@ -39,7 +39,8 @@ def analyze(path: Path) -> dict:
 
     return {
         "id": path.stem.replace(".tokenizer.json", ""),
-        "model_type": model_type,
+        "model_list": "",
+        "algorithm": algorithm,
         "vocab_size": vocab_size,
         "added_tokens": added_count,
         "pre_tokenizer": pre_type,
@@ -48,20 +49,45 @@ def analyze(path: Path) -> dict:
     }
 
 
+def load_existing_model_list(path: Path) -> dict:
+    """Preserve manually-curated model_list when regenerating the index."""
+    mapping = {}
+    if not path.exists():
+        return mapping
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            header = f.readline().strip().split("\t")
+            if "model_list" not in header:
+                return mapping
+            idx = header.index("model_list")
+            id_idx = header.index("id")
+            for line in f:
+                parts = line.strip().split("\t")
+                if len(parts) > max(idx, id_idx):
+                    mapping[parts[id_idx]] = parts[idx]
+    except Exception:
+        pass
+    return mapping
+
+
 def main() -> int:
+    existing_model_list = load_existing_model_list(INDEX_PATH)
+
     rows = []
     for xz_path in sorted(DATA_DIR.glob("*.tokenizer.json.xz")):
         try:
-            rows.append(analyze(xz_path))
+            row = analyze(xz_path)
+            row["model_list"] = existing_model_list.get(row["id"], "")
+            rows.append(row)
         except Exception as e:
             print(f"error analyzing {xz_path}: {e}", file=sys.stderr)
             return 1
 
     with open(INDEX_PATH, "w", encoding="utf-8") as f:
-        f.write("id\tmodel_type\tvocab_size\tadded_tokens\tpre_tokenizer\tsize_raw\tsize_xz\n")
+        f.write("id\tmodel_list\talgorithm\tvocab_size\tadded_tokens\tpre_tokenizer\tsize_raw\tsize_xz\n")
         for r in rows:
             f.write(
-                f"{r['id']}\t{r['model_type']}\t{r['vocab_size']}\t{r['added_tokens']}\t"
+                f"{r['id']}\t{r['model_list']}\t{r['algorithm']}\t{r['vocab_size']}\t{r['added_tokens']}\t"
                 f"{r['pre_tokenizer']}\t{r['size_raw']}\t{r['size_xz']}\n"
             )
 
